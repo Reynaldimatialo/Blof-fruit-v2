@@ -11,15 +11,15 @@ local Quests = Character:WaitForChild("Quests")
 function AddQuest(questName, questDescription)
   local quest = Quests:NewQuest(questName)
   quest.Description.Value = questDescription
-  quest.Objective.Value = "Defeat 1 boss to complete this quest and earn 100 Beli."
-  quest.Reward.Value = "100 Beli"
+  quest.Objective.Value = "Defeat 1 boss to complete this quest and earn 10000000 Beli."
+  quest.Reward.Value = "10000000 Beli"
 end
 
 -- Start the script
 while true do
   -- Check if the boss quest has already been added
   if Quests.BossQuest.Value == false then
-    AddQuest("BossQuest", "Defeat 1 boss to complete this quest and earn 100 Beli.")
+    AddQuest("BossQuest", "Defeat 1 boss to complete this quest and earn 10000000 Beli.")
     Quests.BossQuest.Value = true
   end
 
