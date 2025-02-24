@@ -1,5 +1,5 @@
 -- WARNING: Using scripts in Blox Fruits can get you banned. Use at your own risk.
--- This script auto-farms Gorilla King boss and lets you tweak EXP & money gain.
+-- This script auto-farms Gorilla King boss, takes the quest, and lets you tweak EXP & money gain.
 
 local expMultiplier = 2  -- Change this to modify EXP gain multiplier
 local moneyMultiplier = 2 -- Change this to modify money gain multiplier
@@ -8,6 +8,17 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:FindFirstChild("Humanoid")
+
+-- Function to take the Gorilla King quest
+local function takeGorillaKingQuest()
+    local questNPC = game.Workspace:FindFirstChild("QuestGiver_GorillaKing")
+    if questNPC then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = questNPC.HumanoidRootPart.CFrame * CFrame.new(0, 2, 0)
+        wait(1)
+        game.ReplicatedStorage.Remotes.Quest:InvokeServer("StartQuest", "Gorilla King")
+        print("Quest taken: Defeat Gorilla King")
+    end
+end
 
 -- Function to find Gorilla King boss
 local function findGorillaKing()
@@ -30,8 +41,10 @@ local function attackGorillaKing(boss)
     end
 end
 
--- Main loop to auto-farm Gorilla King
+-- Main loop to take quest and auto-farm Gorilla King
 while true do
+    takeGorillaKingQuest()
+    wait(2)
     local boss = findGorillaKing()
     if boss then
         attackGorillaKing(boss)
