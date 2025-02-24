@@ -55,7 +55,7 @@ game.Players.PlayerAdded:Connect(onPlayerJoined)
 -- |
 -- |-- Experience (IntValue)
 -- |-- Beli (IntValue)
--- |-- Quests (StringValue)
+-- |-- Quests (StringValue) pastikan ini StringValue
 
 -- UI Pemberitahuan Quest
 local screenGui = Instance.new("ScreenGui")
