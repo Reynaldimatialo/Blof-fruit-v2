@@ -1,36 +1,43 @@
--- Script for new boss-killing quest in Blox Fruit
+-- WARNING: Using scripts in Blox Fruits can get you banned. Use at your own risk.
+-- This script auto-farms Gorilla King boss and lets you tweak EXP & money gain.
 
--- Import necessary libraries
+local expMultiplier = 2  -- Change this to modify EXP gain multiplier
+local moneyMultiplier = 2 -- Change this to modify money gain multiplier
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character
-local Humanoid = Character:WaitForChild("Humanoid")
-local Quests = Character:WaitForChild("Quests")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:FindFirstChild("Humanoid")
 
--- Function to add a new quest
-function AddQuest(questName, questDescription)
-  local quest = Quests:NewQuest(questName)
-  quest.Description.Value = questDescription
-  quest.Objective.Value = "Defeat 1 boss to complete this quest and earn 10000000 Beli."
-  quest.Reward.Value = "10000000 Beli"
+-- Function to find Gorilla King boss
+local function findGorillaKing()
+    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            if v.Name == "Gorilla King" then
+                return v
+            end
+        end
+    end
+    return nil
 end
 
--- Start the script
+-- Function to attack Gorilla King
+local function attackGorillaKing(boss)
+    while boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 do
+        LocalPlayer.Character.HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+        game.ReplicatedStorage.Remotes.Combat:FireServer("Attack")
+        wait(0.2)
+    end
+end
+
+-- Main loop to auto-farm Gorilla King
 while true do
-  -- Check if the boss quest has already been added
-  if Quests.BossQuest.Value == false then
-    AddQuest("BossQuest", "Defeat 1 boss to complete this quest and earn 10000000 Beli.")
-    Quests.BossQuest.Value = true
-  end
-
-  -- Get the nearest boss
-  local Boss = Players:GetNearestEnemy(LocalPlayer.Character.Position, 1000)
-
-  -- Attack the boss if one is found
-  if Boss then
-    Humanoid:UseAttack(Boss.Character)
-  end
-
-  -- Wait for 1 second
-  wait(1)
+    local boss = findGorillaKing()
+    if boss then
+        attackGorillaKing(boss)
+        print("Gorilla King defeated! Bonus EXP & Money applied.")
+        LocalPlayer.leaderstats.Beli.Value = LocalPlayer.leaderstats.Beli.Value + (10000 * moneyMultiplier)
+        LocalPlayer.leaderstats.Experience.Value = LocalPlayer.leaderstats.Experience.Value + (5000 * expMultiplier)
+    end
+    wait(5) -- Wait before searching for Gorilla King again
 end
