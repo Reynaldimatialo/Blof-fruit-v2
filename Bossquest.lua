@@ -1,56 +1,92 @@
--- WARNING: Using scripts in Blox Fruits can get you banned. Use at your own risk.
--- This script auto-farms Gorilla King boss, takes the quest, and lets you tweak EXP & money gain.
+-- Blox Fruits Jungle Gorilla King Quest Script
 
-local expMultiplier = 2  -- Change this to modify EXP gain multiplier
-local moneyMultiplier = 2 -- Change this to modify money gain multiplier
+local bossName = "Gorilla King"
+local bossLevel = 1200
+local questRewardBeli = 4000000
+local questRewardExp = 2000000
+local questActive = false
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:FindFirstChild("Humanoid")
+-- Boss Spawning (Example - Adjust to your method)
+local bossSpawnLocation = Vector3(1000, 100, -500) -- Jungle spawn location (adjust)
+local bossModel = game.ReplicatedStorage.GorillaKingModel:Clone() -- Jungle boss model
+bossModel.Parent = workspace
+bossModel:SetPrimaryPartCFrame(CFrame.new(bossSpawnLocation))
+local bossHumanoid = bossModel:WaitForChild("Humanoid")
+bossHumanoid.MaxHealth = 35000
+bossHumanoid.Health = 35000
+local bossAlive = true
 
--- Function to take the Gorilla King quest
-local function takeGorillaKingQuest()
-    local questNPC = game.Workspace:FindFirstChild("QuestGiver_GorillaKing")
-    if questNPC then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = questNPC.HumanoidRootPart.CFrame * CFrame.new(0, 2, 0)
-        wait(1)
-        game.ReplicatedStorage.Remotes.Quest:InvokeServer("StartQuest", "Gorilla King")
-        print("Quest taken: Defeat Gorilla King")
+-- Quest Start Function
+local function startQuest()
+    if questActive then
+        print("Quest already active!")
+        return
     end
-end
 
--- Function to find Gorilla King boss
-local function findGorillaKing()
-    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            if v.Name == "Gorilla King" then
-                return v
-            end
+    questActive = true
+    print("Quest started: Defeat the " .. bossName .. "!")
+    bossModel:SetPrimaryPartCFrame(CFrame.new(bossSpawnLocation))
+    bossHumanoid.MaxHealth = 35000
+    bossHumanoid.Health = 35000
+    bossAlive = true
+    bossModel.Parent = workspace
+
+    bossHumanoid.Died:Connect(function()
+        if questActive and bossAlive then
+            bossAlive = false
+            questActive = false
+            print("Quest completed! You defeated the " .. bossName .. "!")
+            player.leaderstats.Beli.Value = player.leaderstats.Beli.Value + questRewardBeli
+            player.leaderstats.Exp.Value = player.leaderstats.Exp.Value + questRewardExp
+            print("Rewards: " .. questRewardBeli .. " Beli and " .. questRewardExp .. " Exp.")
+            bossModel:Destroy()
         end
+    end)
+
+    -- Example boss AI (Basic - Improve as needed)
+    while questActive and bossAlive and bossHumanoid.Health > 0 do
+        local distance = (character.HumanoidRootPart.Position - bossModel.PrimaryPart.Position).Magnitude
+        if distance < 300 then -- Adjust range for jungle environment
+            bossHumanoid:MoveTo(character.HumanoidRootPart.Position)
+        end
+        wait(1)
     end
-    return nil
 end
 
--- Function to attack Gorilla King
-local function attackGorillaKing(boss)
-    while boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 do
-        LocalPlayer.Character.HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
-        game.ReplicatedStorage.Remotes.Combat:FireServer("Attack")
-        wait(0.2)
-    end
-end
+-- Example Quest Activation (Button/NPC Interaction)
+local questButton = Instance.new("TextButton")
+questButton.Parent = player.PlayerGui.ScreenGui
+questButton.Text = "Start Gorilla King Quest"
+questButton.Size = UDim2.new(0, 200, 0, 50)
+questButton.Position = UDim2.new(0.5, -100, 0.8, -25)
 
--- Main loop to take quest and auto-farm Gorilla King
+questButton.MouseButton1Click:Connect(startQuest)
+
+-- Example Boss Damage Detection(Optional, for more advanced quests)
+bossHumanoid.HealthChanged:Connect(function(newHealth)
+  --Print(newHealth) -- uncomment to see the health change
+  if newHealth <= 0 then
+    --Handle death here, if not using the .Died event
+  end
+end)
+
+--Example timer for how long the boss will stay alive.
+
+local timeLimit = 600 -- 10 minutes (600 seconds)
+local startTime = tick()
+
 while true do
-    takeGorillaKingQuest()
-    wait(2)
-    local boss = findGorillaKing()
-    if boss then
-        attackGorillaKing(boss)
-        print("Gorilla King defeated! Bonus EXP & Money applied.")
-        LocalPlayer.leaderstats.Beli.Value = LocalPlayer.leaderstats.Beli.Value + (10000 * moneyMultiplier)
-        LocalPlayer.leaderstats.Experience.Value = LocalPlayer.leaderstats.Experience.Value + (5000 * expMultiplier)
+  wait(1)
+  if questActive and bossAlive then
+    if tick() - startTime >= timeLimit then
+      bossAlive = false
+      questActive = false
+      print("Time limit reached. Gorilla King returned to his domain.")
+      bossModel:Destroy()
+      startTime = tick() -- Reset the timer if the quest is started again.
     end
-    wait(5) -- Wait before searching for Gorilla King again
+  end
 end
