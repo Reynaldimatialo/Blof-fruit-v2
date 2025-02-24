@@ -1,92 +1,119 @@
--- Blox Fruits Jungle Gorilla King Quest Script
+-- Informasi Bos
+local bossName = "Kapten Brute"
+local bossLevel = 50
+local bossHealth = 1000
+local bossSpawnLocation = Vector3.new(-200, 10, 500)
 
-local bossName = "Gorilla King"
-local bossLevel = 1200
-local questRewardBeli = 4000000
-local questRewardExp = 2000000
-local questActive = false
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
+-- Informasi Quest
+local questName = "Kalahkan Kapten Brute"
+local questDescription = "Kapten Brute telah meneror pulau. Kalahkan dia!"
+local questRewardXP = 250
+local questRewardMoney = 99999999 -- Hadiah uang diubah menjadi 99.999.999
 
--- Boss Spawning (Example - Adjust to your method)
-local bossSpawnLocation = Vector3(1000, 100, -500) -- Jungle spawn location (adjust)
-local bossModel = game.ReplicatedStorage.GorillaKingModel:Clone() -- Jungle boss model
-bossModel.Parent = workspace
-bossModel:SetPrimaryPartCFrame(CFrame.new(bossSpawnLocation))
-local bossHumanoid = bossModel:WaitForChild("Humanoid")
-bossHumanoid.MaxHealth = 35000
-bossHumanoid.Health = 35000
-local bossAlive = true
+-- Fungsi untuk membuat bos
+local function spawnBoss()
+    local boss = Instance.new("Humanoid")
+    boss.Name = bossName
+    boss.MaxHealth = bossHealth
+    boss.Health = bossHealth
 
--- Quest Start Function
-local function startQuest()
-    if questActive then
-        print("Quest already active!")
-        return
-    end
+    local humanoidPart = Instance.new("Part")
+    humanoidPart.Size = Vector3.new(3, 6, 3)
+    humanoidPart.Anchored = true
+    humanoidPart.CFrame = CFrame.new(bossSpawnLocation)
 
-    questActive = true
-    print("Quest started: Defeat the " .. bossName .. "!")
-    bossModel:SetPrimaryPartCFrame(CFrame.new(bossSpawnLocation))
-    bossHumanoid.MaxHealth = 35000
-    bossHumanoid.Health = 35000
-    bossAlive = true
-    bossModel.Parent = workspace
+    boss.Parent = humanoidPart
+    humanoidPart.Parent = workspace
 
-    bossHumanoid.Died:Connect(function()
-        if questActive and bossAlive then
-            bossAlive = false
-            questActive = false
-            print("Quest completed! You defeated the " .. bossName .. "!")
-            player.leaderstats.Beli.Value = player.leaderstats.Beli.Value + questRewardBeli
-            player.leaderstats.Exp.Value = player.leaderstats.Exp.Value + questRewardExp
-            print("Rewards: " .. questRewardBeli .. " Beli and " .. questRewardExp .. " Exp.")
-            bossModel:Destroy()
-        end
-    end)
-
-    -- Example boss AI (Basic - Improve as needed)
-    while questActive and bossAlive and bossHumanoid.Health > 0 do
-        local distance = (character.HumanoidRootPart.Position - bossModel.PrimaryPart.Position).Magnitude
-        if distance < 300 then -- Adjust range for jungle environment
-            bossHumanoid:MoveTo(character.HumanoidRootPart.Position)
-        end
-        wait(1)
-    end
+    return boss
 end
 
--- Example Quest Activation (Button/NPC Interaction)
-local questButton = Instance.new("TextButton")
-questButton.Parent = player.PlayerGui.ScreenGui
-questButton.Text = "Start Gorilla King Quest"
-questButton.Size = UDim2.new(0, 200, 0, 50)
-questButton.Position = UDim2.new(0.5, -100, 0.8, -25)
+-- Fungsi untuk memulai quest
+local function startQuest(player)
+    player.leaderstats.Quests.Value = questName
+    player:ChatPrint("Quest dimulai: " .. questName)
+    updateQuest("Kalahkan Kapten Brute (0/1)", questRewardMoney, questRewardXP)
 
-questButton.MouseButton1Click:Connect(startQuest)
+    local boss = spawnBoss()
 
--- Example Boss Damage Detection(Optional, for more advanced quests)
-bossHumanoid.HealthChanged:Connect(function(newHealth)
-  --Print(newHealth) -- uncomment to see the health change
-  if newHealth <= 0 then
-    --Handle death here, if not using the .Died event
-  end
+    boss.Died:Connect(function()
+        player.leaderstats.Experience.Value = player.leaderstats.Experience.Value + questRewardXP
+        player.leaderstats.Beli.Value = player.leaderstats.Beli.Value + questRewardMoney
+        player:ChatPrint("Quest selesai! Anda mendapatkan " .. questRewardXP .. " XP dan " .. questRewardMoney .. " Beli.")
+        player.leaderstats.Quests.Value = "Tidak ada"
+        boss.Parent.Parent:Destroy()
+        screenGui:Destroy()
+    end)
+end
+
+-- Contoh penggunaan (misalnya, NPC yang memberikan quest)
+local questGiver = workspace.QuestGiver
+questGiver.ClickDetector.MouseClick:Connect(function(player)
+    if player.leaderstats.Quests.Value == "Tidak ada" then
+        startQuest(player)
+    else
+        player:ChatPrint("Anda sudah memiliki quest aktif.")
+    end
 end)
 
---Example timer for how long the boss will stay alive.
+-- Struktur Leaderstats (pastikan sudah dibuat)
+-- player.leaderstats
+-- |
+-- |-- Experience (IntValue)
+-- |-- Beli (IntValue)
+-- |-- Quests (StringValue)
 
-local timeLimit = 600 -- 10 minutes (600 seconds)
-local startTime = tick()
+-- UI Pemberitahuan Quest
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer.PlayerGui
 
-while true do
-  wait(1)
-  if questActive and bossAlive then
-    if tick() - startTime >= timeLimit then
-      bossAlive = false
-      questActive = false
-      print("Time limit reached. Gorilla King returned to his domain.")
-      bossModel:Destroy()
-      startTime = tick() -- Reset the timer if the quest is started again.
-    end
-  end
+local questFrame = Instance.new("Frame")
+questFrame.Size = UDim2.new(0, 200, 0, 100)
+questFrame.Position = UDim2.new(0.8, 0, 0.1, 0)
+questFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+questFrame.BorderSizePixel = 2
+questFrame.BorderColor3 = Color3.fromRGB(100, 100, 100)
+questFrame.Parent = screenGui
+
+local questTitle = Instance.new("TextLabel")
+questTitle.Size = UDim2.new(1, 0, 0.2, 0)
+questTitle.Position = UDim2.new(0, 0, 0, 0)
+questTitle.BackgroundTransparency = 1
+questTitle.Text = "QUEST"
+questTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+questTitle.TextScaled = true
+questTitle.Parent = questFrame
+
+local questDescription = Instance.new("TextLabel")
+questDescription.Size = UDim2.new(1, 0, 0.4, 0)
+questDescription.Position = UDim2.new(0, 0, 0.2, 0)
+questDescription.BackgroundTransparency = 1
+questDescription.Text = "Kalahkan Kapten Brute (0/1)"
+questDescription.TextColor3 = Color3.fromRGB(255, 255, 255)
+questDescription.TextScaled = true
+questDescription.Parent = questFrame
+
+local moneyReward = Instance.new("TextLabel")
+moneyReward.Size = UDim2.new(1, 0, 0.2, 0)
+moneyReward.Position = UDim2.new(0, 0, 0.6, 0)
+moneyReward.BackgroundTransparency = 1
+moneyReward.Text = "Hadiah: $99999999" -- Hadiah uang diubah
+moneyReward.TextColor3 = Color3.fromRGB(255, 255, 255)
+moneyReward.TextScaled = true
+moneyReward.Parent = questFrame
+
+local xpReward = Instance.new("TextLabel")
+xpReward.Size = UDim2.new(1, 0, 0.2, 0)
+xpReward.Position = UDim2.new(0, 0, 0.8, 0)
+xpReward.BackgroundTransparency = 1
+xpReward.Text = "250 Exp."
+xpReward.TextColor3 = Color3.fromRGB(255, 255, 255)
+xpReward.TextScaled = true
+xpReward.Parent = questFrame
+
+-- Fungsi untuk memperbarui teks quest
+local function updateQuest(description, money, xp)
+    questDescription.Text = description
+    moneyReward.Text = "Hadiah: $" .. money
+    xpReward.Text = xp .. " Exp."
 end
