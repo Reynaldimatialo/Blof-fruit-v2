@@ -1,19 +1,19 @@
 -- Informasi Bos
-local bossName = "Kapten Brute" -- Nama bos yang sudah ada
-local bossLevel = 50
-local bossHealth = 1000
+local bossName = "Bobby" -- Nama bos baru
+local bossLevel = 55
+local bossHealth = 1775
 
 -- Informasi Quest
-local questName = "Kalahkan Kapten Brute"
-local questDescription = "Kalahkan Kapten Brute!"
-local questRewardXP = 250
+local questName = "Kalahkan Bobby"
+local questDescription = "Kalahkan Bobby di Pirate Village!"
+local questRewardXP = 500
 local questRewardMoney = 99999999
 
 -- Fungsi untuk memulai quest
 local function startQuest(player)
     player.leaderstats.Quests.Value = questName
     player:ChatPrint("Quest dimulai: " .. questName)
-    updateQuest("Kalahkan Kapten Brute (0/1)", questRewardMoney, questRewardXP)
+    updateQuest("Kalahkan Bobby (0/1)", questRewardMoney, questRewardXP)
 
     -- Cari bos di workspace
     local boss = workspace:FindFirstChild(bossName)
@@ -82,32 +82,10 @@ local questDescription = Instance.new("TextLabel")
 questDescription.Size = UDim2.new(1, 0, 0.4, 0)
 questDescription.Position = UDim2.new(0, 0, 0.2, 0)
 questDescription.BackgroundTransparency = 1
-questDescription.Text = "Kalahkan Kapten Brute (0/1)"
+questDescription.Text = "Kalahkan Bobby (0/1)"
 questDescription.TextColor3 = Color3.fromRGB(255, 255, 255)
 questDescription.TextScaled = true
 questDescription.Parent = questFrame
 
 local moneyReward = Instance.new("TextLabel")
 moneyReward.Size = UDim2.new(1, 0, 0.2, 0)
-moneyReward.Position = UDim2.new(0, 0, 0.6, 0)
-moneyReward.BackgroundTransparency = 1
-moneyReward.Text = "Hadiah: $99999999"
-moneyReward.TextColor3 = Color3.fromRGB(255, 255, 255)
-moneyReward.TextScaled = true
-moneyReward.Parent = questFrame
-
-local xpReward = Instance.new("TextLabel")
-xpReward.Size = UDim2.new(1, 0, 0.2, 0)
-xpReward.Position = UDim2.new(0, 0, 0.8, 0)
-xpReward.BackgroundTransparency = 1
-xpReward.Text = "250 Exp."
-xpReward.TextColor3 = Color3.fromRGB(255, 255, 255)
-xpReward.TextScaled = true
-xpReward.Parent = questFrame
-
--- Fungsi untuk memperbarui teks quest
-local function updateQuest(description, money, xp)
-    questDescription.Text = description
-    moneyReward.Text = "Hadiah: $" .. money
-    xpReward.Text = xp .. " Exp."
-end
