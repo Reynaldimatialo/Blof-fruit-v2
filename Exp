@@ -1,0 +1,32 @@
+local expMultiplier = 2  -- Change this to modify EXP gain multiplier
+local moneyMultiplier = 2 -- Change this to modify money gain multiplier
+
+local function findBoss()
+    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            if string.match(v.Name, "Boss") then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function attackBoss(boss)
+    while boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 do
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+        game.ReplicatedStorage.Remotes.Combat:FireServer("Attack")
+        wait(0.2)
+    end
+end
+
+while true do
+    local boss = findBoss()
+    if boss then
+        attackBoss(boss)
+        print("Boss defeated! Bonus EXP & Money applied.")
+        game.Players.LocalPlayer.leaderstats.Beli.Value = game.Players.LocalPlayer.leaderstats.Beli.Value + (10000 * moneyMultiplier)
+        game.Players.LocalPlayer.leaderstats.Experience.Value = game.Players.LocalPlayer.leaderstats.Experience.Value + (5000 * expMultiplier)
+    end
+    wait(5) -- Wait before searching for a new boss
+end
