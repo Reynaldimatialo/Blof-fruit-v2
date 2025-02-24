@@ -8,7 +8,7 @@ local bossSpawnLocation = Vector3.new(-200, 10, 500)
 local questName = "Kalahkan Kapten Brute"
 local questDescription = "Kapten Brute telah meneror pulau. Kalahkan dia!"
 local questRewardXP = 250
-local questRewardMoney = 99999999 -- Hadiah uang diubah menjadi 99.999.999
+local questRewardMoney = 99999999
 
 -- Fungsi untuk membuat bos
 local function spawnBoss()
@@ -46,15 +46,19 @@ local function startQuest(player)
     end)
 end
 
--- Contoh penggunaan (misalnya, NPC yang memberikan quest)
-local questGiver = workspace.QuestGiver
-questGiver.ClickDetector.MouseClick:Connect(function(player)
+-- Fungsi untuk memulai quest ketika pemain bergabung
+local function onPlayerJoined(player)
+    -- Tunggu hingga leaderstats pemain dibuat
+    player.CharacterAdded:Wait()
+    player.leaderstats.Quests.Changed:Wait()
+
     if player.leaderstats.Quests.Value == "Tidak ada" then
         startQuest(player)
-    else
-        player:ChatPrint("Anda sudah memiliki quest aktif.")
     end
-end)
+end
+
+-- Hubungkan fungsi onPlayerJoined ke event PlayerAdded
+game.Players.PlayerAdded:Connect(onPlayerJoined)
 
 -- Struktur Leaderstats (pastikan sudah dibuat)
 -- player.leaderstats
@@ -97,7 +101,7 @@ local moneyReward = Instance.new("TextLabel")
 moneyReward.Size = UDim2.new(1, 0, 0.2, 0)
 moneyReward.Position = UDim2.new(0, 0, 0.6, 0)
 moneyReward.BackgroundTransparency = 1
-moneyReward.Text = "Hadiah: $99999999" -- Hadiah uang diubah
+moneyReward.Text = "Hadiah: $99999999"
 moneyReward.TextColor3 = Color3.fromRGB(255, 255, 255)
 moneyReward.TextScaled = true
 moneyReward.Parent = questFrame
