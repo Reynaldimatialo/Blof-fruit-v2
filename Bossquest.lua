@@ -1,32 +1,13 @@
 -- Informasi Bos
-local bossName = "Kapten Brute"
+local bossName = "Kapten Brute" -- Nama bos yang sudah ada
 local bossLevel = 50
 local bossHealth = 1000
-local bossSpawnLocation = Vector3.new(-200, 10, 500)
 
 -- Informasi Quest
 local questName = "Kalahkan Kapten Brute"
-local questDescription = "Kapten Brute telah meneror pulau. Kalahkan dia!"
+local questDescription = "Kalahkan Kapten Brute!"
 local questRewardXP = 250
 local questRewardMoney = 99999999
-
--- Fungsi untuk membuat bos
-local function spawnBoss()
-    local boss = Instance.new("Humanoid")
-    boss.Name = bossName
-    boss.MaxHealth = bossHealth
-    boss.Health = bossHealth
-
-    local humanoidPart = Instance.new("Part")
-    humanoidPart.Size = Vector3.new(3, 6, 3)
-    humanoidPart.Anchored = true
-    humanoidPart.CFrame = CFrame.new(bossSpawnLocation)
-
-    boss.Parent = humanoidPart
-    humanoidPart.Parent = workspace
-
-    return boss
-end
 
 -- Fungsi untuk memulai quest
 local function startQuest(player)
@@ -34,21 +15,30 @@ local function startQuest(player)
     player:ChatPrint("Quest dimulai: " .. questName)
     updateQuest("Kalahkan Kapten Brute (0/1)", questRewardMoney, questRewardXP)
 
-    local boss = spawnBoss()
+    -- Cari bos di workspace
+    local boss = workspace:FindFirstChild(bossName)
 
-    boss.Died:Connect(function()
-        player.leaderstats.Experience.Value = player.leaderstats.Experience.Value + questRewardXP
-        player.leaderstats.Beli.Value = player.leaderstats.Beli.Value + questRewardMoney
-        player:ChatPrint("Quest selesai! Anda mendapatkan " .. questRewardXP .. " XP dan " .. questRewardMoney .. " Beli.")
-        player.leaderstats.Quests.Value = "Tidak ada"
-        boss.Parent.Parent:Destroy()
-        screenGui:Destroy()
-    end)
+    if boss then
+        local humanoid = boss:FindFirstChild("Humanoid")
+
+        if humanoid then
+            humanoid.Died:Connect(function()
+                player.leaderstats.Experience.Value = player.leaderstats.Experience.Value + questRewardXP
+                player.leaderstats.Beli.Value = player.leaderstats.Beli.Value + questRewardMoney
+                player:ChatPrint("Quest selesai! Anda mendapatkan " .. questRewardXP .. " XP dan " .. questRewardMoney .. " Beli.")
+                player.leaderstats.Quests.Value = "Tidak ada"
+                screenGui:Destroy()
+            end)
+        else
+            warn("Humanoid tidak ditemukan pada " .. bossName)
+        end
+    else
+        warn("Bos " .. bossName .. " tidak ditemukan di workspace.")
+    end
 end
 
 -- Fungsi untuk memulai quest ketika pemain bergabung
 local function onPlayerJoined(player)
-    -- Tunggu hingga leaderstats pemain dibuat
     player.CharacterAdded:Wait()
     player.leaderstats.Quests.Changed:Wait()
 
